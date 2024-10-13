@@ -1,0 +1,37 @@
+[
+    {
+        "product_id": 1,
+        "name": "Laptop",
+        "description": "A high-performance laptop for gaming and work.",
+        "price": 999.99,
+        "stock": 50
+    },
+    {
+        "product_id": 2,
+        "name": "Smartphone",
+        "description": "A latest model smartphone with all the features.",
+        "price": 699.99,
+        "stock": 100
+    },
+    {
+        "product_id": 3,
+        "name": "Headphones",
+        "description": "Noise-cancelling over-ear headphones.",
+        "price": 199.99,
+        "stock": 75
+    },
+    {
+        "product_id": 4,
+        "name": "Smartwatch",
+        "description": "A smartwatch with fitness tracking features.",
+        "price": 249.99,
+        "stock": 30
+    },
+    {
+        "product_id": 5,
+        "name": "Tablet",
+        "description": "A versatile tablet for work and play.",
+        "price": 399.99,
+        "stock": 60
+    }
+]
