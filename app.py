@@ -25,6 +25,7 @@ app.route('/v1/register', methods=['POST'])(auth.register)
 app.route('/v1/login', methods=['POST'])(auth.login)
 app.route('/v1/user/<username>', methods=['DELETE'])(auth.delete_user)
 app.route('/v1/logout', methods=['POST'])(auth.logout)
+app.route('/v1/user/<username>', methods=['GET'])(auth.get_user)  
 
 # Product routes
 app.route('/v1/products', methods=['GET'])(products.get_products)
@@ -42,7 +43,6 @@ def delete_user_cart(user_id):
 
 # Order routes
 app.route('/v1/order', methods=['POST'])(orders.place_order)
-
 
 if __name__ == '__main__':
     app.run(debug=True)

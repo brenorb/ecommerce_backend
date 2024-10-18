@@ -1,5 +1,5 @@
 from flask import request, jsonify, session
-from models import db, User, UserRole
+from models import db, User
 from werkzeug.security import generate_password_hash, check_password_hash
 
 def register():
@@ -10,7 +10,7 @@ def register():
     if existing_user:
         return jsonify({'error': 'Conflict: username or email already exists'}), 409
     hashed_password = generate_password_hash(data['password'])
-    role = UserRole.ADMIN if data.get('is_admin') else UserRole.USER
+    role = 'admin' if data.get('is_admin') else 'user'
     user = User(username=data['username'], password=hashed_password, email=data['email'], role=role)
     db.t.users.insert(user)
     return jsonify({'message': 'User registered successfully'}), 201
@@ -24,15 +24,6 @@ def login():
         return jsonify({'message': 'Login successful', 'role': user[0]['role']}), 200
     return jsonify({'error': 'Unauthorized'}), 401
 
-def delete_user(username):
-    if 'role' in session and session['role'] == UserRole.ADMIN.value:
-        result = db.execute('DELETE FROM users WHERE username = ?', (username,))
-        if result.rowcount > 0:
-            return jsonify({'message': 'User deleted successfully'}), 200
-        else:
-            return jsonify({'error': 'User not found'}), 404
-    return jsonify({'error': 'Unauthorized: Admins only'}), 403
-
 def logout():
     if 'username' in session:
         session.pop('username', None)
@@ -40,3 +31,45 @@ def logout():
         return jsonify({'message': 'Logged out successfully'}), 200
     else:
         return jsonify({'message': 'No user is currently logged in'}), 400
+
+def delete_user(username):
+    if 'username' not in session:
+        return jsonify({'error': 'Unauthorized: User not logged in'}), 401
+
+    if username == session['username']:
+        delete_own_account()
+        return jsonify({'message': 'User account deleted successfully'}), 200
+
+    elif 'role' in session and session['role'] == 'admin':
+        result = db.execute('DELETE FROM users WHERE username = ?', (username,))
+        if result.rowcount > 0:
+            return jsonify({'message': 'User deleted successfully'}), 200
+        else:
+            return jsonify({'error': 'User not found'}), 404
+    return jsonify({'error': 'Unauthorized: Admins only'}), 403
+
+def delete_own_account():
+    if 'username' not in session:
+        return jsonify({'error': 'Unauthorized: User not logged in'}), 401
+
+    username = session['username']
+    result = db.execute('DELETE FROM users WHERE username = ?', (username,))
+    
+    if result.rowcount > 0:
+        session.pop('username', None)  # Clear session
+        return jsonify({'message': 'User account deleted successfully'}), 200
+    else:
+        return jsonify({'error': 'User not found'}), 404
+
+def get_user(username):
+
+    user = db.q('SELECT username, email, role FROM users WHERE username = ?', (username,))
+    
+    if user:
+        return jsonify({
+            'username': user[0]['username'],
+            'email': user[0]['email'],
+            'role': user[0]['role']
+        }), 200
+    else:
+        return jsonify({'error': 'User not found'}), 404

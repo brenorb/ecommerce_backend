@@ -14,15 +14,28 @@ class TestEcommerceBackend(unittest.TestCase):
         self.assertIn(b"API running", response.data)
 
     def test_register(self):
-        # First, delete the test user if it exists
-        self.client.delete('/v1/user/testuser')
-        # self.assertIn(delete_response.status_code, [200, 404])  # 200 if deleted, 404 if not found
+        # First, check if the test user exists
+        check_user_response = self.client.get('/v1/user/testuser')
+        if check_user_response.status_code == 200:
+            # Login as admin
+            admin_login_response = self.client.post('/v1/login', json={
+                'username': 'admin',
+                'password': 'admin_password'
+            })
+            self.assertEqual(admin_login_response.status_code, 200)
+            # Delete the test user
+            delete_user_response = self.client.delete('/v1/user/testuser')
+            self.assertEqual(delete_user_response.status_code, 200)
+            # Logout
+            logout_response = self.client.post('/v1/logout')
+            self.assertEqual(logout_response.status_code, 200)
 
         # Now attempt to register the user
         register_response = self.client.post('/v1/register', json={
             'username': 'testuser',
             'password': 'testpass',
-            'email': 'test@example.com'
+            'email': 'test@example.com',
+            'is_admin': False  
         })
         self.assertEqual(register_response.status_code, 201)
         self.assertIn('User registered successfully', register_response.get_json()['message'])
@@ -63,12 +76,19 @@ class TestEcommerceBackend(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
 
     def test_delete_user(self):
-        # First, register a user
+        # Register a user
         self.client.post('/v1/register', json={
             'username': 'deleteuser',
             'password': 'testpass',
             'email': 'delete@example.com'
         })
+
+        # Login as admin
+        admin_login_response = self.client.post('/v1/login', json={
+            'username': 'admin',
+            'password': 'admin_password'
+        })
+        self.assertEqual(admin_login_response.status_code, 200)
 
         # Now delete the user
         response = self.client.delete('/v1/user/deleteuser')
@@ -135,6 +155,34 @@ class TestEcommerceBackend(unittest.TestCase):
         second_logout_response = self.client.post('/v1/logout')
         self.assertEqual(second_logout_response.status_code, 400)
         self.assertIn('No user is currently logged in', second_logout_response.get_json()['message'])
+
+    def test_delete_own_account(self):
+        # First, register a user
+        self.client.post('/v1/register', json={
+            'username': 'deleteuser',
+            'password': 'testpass',
+            'email': 'delete@example.com'
+        })
+
+        # Now login the user
+        login_response = self.client.post('/v1/login', json={
+            'username': 'deleteuser',
+            'password': 'testpass'
+        })
+        self.assertEqual(login_response.status_code, 200)
+
+        # Now delete the user's own account
+        delete_response = self.client.delete('/v1/user/deleteuser')
+        self.assertEqual(delete_response.status_code, 200)
+        self.assertIn('User account deleted successfully', delete_response.get_json()['message'])
+
+        # Try to login again, should fail
+        login_response = self.client.post('/v1/login', json={
+            'username': 'deleteuser',
+            'password': 'testpass'
+        })
+        self.assertEqual(login_response.status_code, 401)
+        self.assertIn('Unauthorized', login_response.get_json()['error'])
 
 if __name__ == '__main__':
     unittest.main()

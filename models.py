@@ -5,17 +5,13 @@ from werkzeug.security import generate_password_hash
 
 db = database('data/ecommerce.db')
 
-class UserRole(Enum):
-    USER = 'user'
-    ADMIN = 'admin'
-
 @dataclass
 class User:
     user_id: int
     username: str
     password: str
     email: str
-    role: UserRole = UserRole.USER
+    role: str = 'user'
 
 @dataclass
 class Product:
@@ -60,10 +56,13 @@ def create_admin_user():
         username='admin',
         password=generate_password_hash('admin_password'),  
         email='admin@example.com',
-        role=UserRole.ADMIN
+        role='admin'
     )
     db.t.users.insert(admin_user)
 
 # Call this function to create an admin user if it doesn't exist
-if not db.q('SELECT * FROM users WHERE role = ?', (UserRole.ADMIN.value,)):
+if not db.q('SELECT * FROM users WHERE role = ?', ('admin',)):
     create_admin_user()
+
+if __name__ == '__main__':
+    print(db.t.users.columns)
