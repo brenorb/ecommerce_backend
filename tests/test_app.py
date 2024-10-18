@@ -11,19 +11,30 @@ class TestEcommerceBackend(unittest.TestCase):
     def test_home_route(self):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"<h1>Hello, World</h1>", response.data)
+        self.assertIn(b"API running", response.data)
 
     def test_register(self):
         # First, delete the test user if it exists
         self.client.delete('/v1/user/testuser')
+        # self.assertIn(delete_response.status_code, [200, 404])  # 200 if deleted, 404 if not found
 
         # Now attempt to register the user
-        response = self.client.post('/v1/register', json={
+        register_response = self.client.post('/v1/register', json={
             'username': 'testuser',
             'password': 'testpass',
             'email': 'test@example.com'
         })
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(register_response.status_code, 201)
+        self.assertIn('User registered successfully', register_response.get_json()['message'])
+
+        # Try to register the same user again, should fail
+        duplicate_register_response = self.client.post('/v1/register', json={
+            'username': 'testuser',
+            'password': 'testpass',
+            'email': 'test@example.com'
+        })
+        self.assertEqual(duplicate_register_response.status_code, 409)
+        self.assertIn('Conflict: username or email already exists', duplicate_register_response.get_json()['error'])
 
     def test_login(self):
         response = self.client.post('/v1/login', json={
@@ -106,6 +117,24 @@ class TestEcommerceBackend(unittest.TestCase):
         response = self.client.get('/v1/cart/1')
         self.assertEqual(response.status_code, 200)
         self.assertIn('Cart is empty', response.get_json()['message'])
+
+    def test_logout(self):
+        # First, login
+        login_response = self.client.post('/v1/login', json={
+            'username': 'testuser',
+            'password': 'testpass'
+        })
+        self.assertEqual(login_response.status_code, 200)
+        
+        # Now logout
+        logout_response = self.client.post('/v1/logout')
+        self.assertEqual(logout_response.status_code, 200)
+        self.assertIn('Logged out successfully', logout_response.get_json()['message'])
+        
+        # Try to logout again, should get a message that no user is logged in
+        second_logout_response = self.client.post('/v1/logout')
+        self.assertEqual(second_logout_response.status_code, 400)
+        self.assertIn('No user is currently logged in', second_logout_response.get_json()['message'])
 
 if __name__ == '__main__':
     unittest.main()

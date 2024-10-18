@@ -1,7 +1,13 @@
 from dataclasses import dataclass
 from fastlite import database
+from enum import Enum
+from werkzeug.security import generate_password_hash
 
 db = database('data/ecommerce.db')
+
+class UserRole(Enum):
+    USER = 'user'
+    ADMIN = 'admin'
 
 @dataclass
 class User:
@@ -9,6 +15,7 @@ class User:
     username: str
     password: str
     email: str
+    role: UserRole = UserRole.USER
 
 @dataclass
 class Product:
@@ -46,3 +53,17 @@ def load_sample_products():
         products = json.load(f)
         for product in products:
             db.t.products.insert(Product(**product))
+
+def create_admin_user():
+    admin_user = User(
+        user_id=None,  
+        username='admin',
+        password=generate_password_hash('admin_password'),  
+        email='admin@example.com',
+        role=UserRole.ADMIN
+    )
+    db.t.users.insert(admin_user)
+
+# Call this function to create an admin user if it doesn't exist
+if not db.q('SELECT * FROM users WHERE role = ?', (UserRole.ADMIN.value,)):
+    create_admin_user()

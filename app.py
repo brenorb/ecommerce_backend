@@ -5,8 +5,10 @@ from fastlite import database
 from dataclasses import dataclass
 from routes import auth, products, cart, orders
 from models import db, load_sample_products
+import os
 
 app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY') or 'your-secret-key-here'
 
 # Check if the products table is empty and load sample products if it is
 result = db.q(f'SELECT COUNT(*) AS enum FROM products')
@@ -15,12 +17,14 @@ if result[0]['enum'] == 0:
 
 @app.route("/", methods=['GET'])
 def home():
-    return "<h1>API running</h1>"
+    # Just for testing
+    return "API running"
 
 # Auth routes
 app.route('/v1/register', methods=['POST'])(auth.register)
 app.route('/v1/login', methods=['POST'])(auth.login)
 app.route('/v1/user/<username>', methods=['DELETE'])(auth.delete_user)
+app.route('/v1/logout', methods=['POST'])(auth.logout)
 
 # Product routes
 app.route('/v1/products', methods=['GET'])(products.get_products)
