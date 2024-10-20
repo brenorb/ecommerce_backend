@@ -7,7 +7,7 @@ db = database('data/ecommerce.db')
 
 @dataclass
 class User:
-    user_id: int
+    id: int
     username: str
     password: str
     email: str
@@ -15,7 +15,7 @@ class User:
 
 @dataclass
 class Product:
-    product_id: int
+    id: int
     name: str
     description: str
     price: float
@@ -23,24 +23,24 @@ class Product:
 
 @dataclass
 class Cart:
-    cart_id: int
+    id: int
     user_id: int
     product_id: int
     quantity: int
 
 @dataclass
 class Order:
-    order_id: int
+    id: int
     user_id: int
     cart_id: int
     order_date: str
     status: str
 
 # Create tables
-db.create(cls=User, name='users', pk='user_id', if_not_exists=True)
-db.create(cls=Product, name='products', pk='product_id', if_not_exists=True)
-db.create(cls=Cart, name='carts', pk='cart_id', if_not_exists=True)
-db.create(cls=Order, name='orders', pk='order_id', if_not_exists=True)
+db.create(cls=User, name='users', pk='id', if_not_exists=True)
+db.create(cls=Product, name='products', pk='id', if_not_exists=True)
+db.create(cls=Cart, name='carts', pk='id', if_not_exists=True)
+db.create(cls=Order, name='orders', pk='id', if_not_exists=True)
 
 import json
 
@@ -52,7 +52,7 @@ def load_sample_products():
 
 def create_admin_user():
     admin_user = User(
-        user_id=None,  
+        id=None,  
         username='admin',
         password=generate_password_hash('admin_password'),  
         email='admin@example.com',

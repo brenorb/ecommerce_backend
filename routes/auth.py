@@ -20,8 +20,8 @@ def login():
     user = db.q('SELECT * FROM users WHERE username = ?', (data['username'],))
     if user and check_password_hash(user[0]['password'], data['password']):
         session['username'] = user[0]['username']
-        session['role'] = user[0]['role']  # Store user role in session
-        return jsonify({'message': 'Login successful', 'role': user[0]['role']}), 200
+        session['role'] = user[0]['role'] 
+        return jsonify({'message': 'Login successful', 'role': user[0]['role'], 'id': user[0]['id']}), 200
     return jsonify({'error': 'Unauthorized'}), 401
 
 def logout():
