@@ -1,24 +1,28 @@
 import unittest
 from app import app
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class TestAuth(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self) -> None:
         app.config['TESTING'] = True
         self.client = app.test_client()
 
-    def test_login(self):
+    def test_login(self) -> None:
         response = self.client.post('/v1/login', json={
-            'username': 'testuser',
-            'password': 'testpass'
+            'username': os.getenv('TEST_USERNAME', 'testuser'),
+            'password': os.getenv('TEST_PASSWORD', 'testpass')
         })
         self.assertEqual(response.status_code, 200)
 
-    def test_logout(self):
+    def test_logout(self) -> None:
         # First, login
         login_response = self.client.post('/v1/login', json={
-            'username': 'testuser',
-            'password': 'testpass'
+            'username': os.getenv('TEST_USERNAME', 'testuser'),
+            'password': os.getenv('TEST_PASSWORD', 'testpass')
         })
         self.assertEqual(login_response.status_code, 200)
         
@@ -32,18 +36,18 @@ class TestAuth(unittest.TestCase):
         self.assertEqual(second_logout_response.status_code, 400)
         self.assertIn('No user is currently logged in', second_logout_response.get_json()['message'])
 
-    def test_delete_own_account(self):
+    def test_delete_own_account(self) -> None:
         # First, register a user
         self.client.post('/v1/register', json={
-            'username': 'deleteuser',
-            'password': 'testpass',
+            'username': os.getenv('DELETE_USER_USERNAME', 'deleteuser'),
+            'password': os.getenv('DELETE_USER_PASSWORD', 'testpass'),
             'email': 'delete@example.com'
         })
 
         # Now login the user
         login_response = self.client.post('/v1/login', json={
-            'username': 'deleteuser',
-            'password': 'testpass'
+            'username': os.getenv('DELETE_USER_USERNAME', 'deleteuser'),
+            'password': os.getenv('DELETE_USER_PASSWORD', 'testpass')
         })
         self.assertEqual(login_response.status_code, 200)
 
@@ -54,8 +58,8 @@ class TestAuth(unittest.TestCase):
 
         # Try to login again, should fail
         login_response = self.client.post('/v1/login', json={
-            'username': 'deleteuser',
-            'password': 'testpass'
+            'username': os.getenv('DELETE_USER_USERNAME', 'deleteuser'),
+            'password': os.getenv('DELETE_USER_PASSWORD', 'testpass')
         })
         self.assertEqual(login_response.status_code, 401)
         self.assertIn('Unauthorized', login_response.get_json()['error'])

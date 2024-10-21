@@ -1,17 +1,21 @@
 import unittest
 from app import app
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class TestProduct(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self) -> None:
         app.config['TESTING'] = True
         self.client = app.test_client()
     
-    def test_get_product_by_id(self):
+    def test_get_product_by_id(self) -> None:
         # First, login as admin to add a product for testing
         admin_login_response = self.client.post('/v1/login', json={
-            'username': 'admin',
-            'password': 'admin_password'
+            'username': os.getenv('ADMIN_USERNAME'),
+            'password': os.getenv('ADMIN_PASSWORD')
         })
         self.assertEqual(admin_login_response.status_code, 200)
 
@@ -31,8 +35,8 @@ class TestProduct(unittest.TestCase):
 
         # Now login as a regular user to retrieve the product
         login_response = self.client.post('/v1/login', json={
-            'username': 'testuser',
-            'password': 'testpass'
+            'username': os.getenv('TEST_USERNAME', 'testuser'),
+            'password': os.getenv('TEST_PASSWORD', 'testpass')
         })
         self.assertEqual(login_response.status_code, 200)
 
@@ -52,8 +56,8 @@ class TestProduct(unittest.TestCase):
 
         # Login as admin again
         admin_login_response = self.client.post('/v1/login', json={
-            'username': 'admin',
-            'password': 'admin_password'
+            'username': os.getenv('ADMIN_USERNAME'),
+            'password': os.getenv('ADMIN_PASSWORD')
         })
         self.assertEqual(admin_login_response.status_code, 200)
 
@@ -66,11 +70,11 @@ class TestProduct(unittest.TestCase):
         logout_response = self.client.post('/v1/logout')        
         self.assertEqual(logout_response.status_code, 200)
 
-    def test_add_product(self):
+    def test_add_product(self) -> None:
         # First, login as admin
         admin_login_response = self.client.post('/v1/login', json={
-            'username': 'admin',
-            'password': 'admin_password'
+            'username': os.getenv('ADMIN_USERNAME'),
+            'password': os.getenv('ADMIN_PASSWORD')
         })
         self.assertEqual(admin_login_response.status_code, 200)
 
@@ -84,11 +88,11 @@ class TestProduct(unittest.TestCase):
         self.assertEqual(add_product_response.status_code, 201)
         self.assertIn('Product added successfully', add_product_response.get_json()['message'])
 
-    def test_update_product(self):
+    def test_update_product(self) -> None:
         # First, login as admin
         admin_login_response = self.client.post('/v1/login', json={
-            'username': 'admin',
-            'password': 'admin_password'
+            'username': os.getenv('ADMIN_USERNAME'),
+            'password': os.getenv('ADMIN_PASSWORD')
         })
         self.assertEqual(admin_login_response.status_code, 200)
 
@@ -122,11 +126,11 @@ class TestProduct(unittest.TestCase):
         self.assertEqual(update_non_existing_response.status_code, 404)
         self.assertIn('Product not found', update_non_existing_response.get_json()['error'])
 
-    def test_delete_product(self):
+    def test_delete_product(self) -> None:
         # First, login as admin
         admin_login_response = self.client.post('/v1/login', json={
-            'username': 'admin',
-            'password': 'admin_password'
+            'username': os.getenv('ADMIN_USERNAME'),
+            'password': os.getenv('ADMIN_PASSWORD')
         })
         self.assertEqual(admin_login_response.status_code, 200)
 

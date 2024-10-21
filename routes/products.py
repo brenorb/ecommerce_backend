@@ -1,18 +1,18 @@
 from flask import jsonify, request, session
 from models import db, Product
 
-def get_products():
+def get_products() -> dict[str, str]:
     products = db.q('SELECT * FROM products')
     return jsonify(products), 200
 
-def get_product_by_id(product_id):
+def get_product_by_id(product_id: int) -> dict[str, str | dict[str, str | int | float]]:
     product = db.q('SELECT * FROM products WHERE id = ?', (product_id,))
     if product:
         return jsonify(product), 200
     else:
         return jsonify({'error': 'Product not found'}), 404
 
-def add_product():
+def add_product() -> dict[str, str]:
     if 'role' not in session or session['role'] != 'admin':
         return jsonify({'error': 'Unauthorized: Admins only'}), 403
 
@@ -27,7 +27,7 @@ def add_product():
 
     return jsonify({'message': 'Product added successfully', 'product': new_row}), 201
 
-def update_product(product_id):
+def update_product(product_id: int) -> dict[str, str]:
     if 'role' not in session or session['role'] != 'admin':
         return jsonify({'error': 'Unauthorized: Admins only'}), 403
 
@@ -40,7 +40,7 @@ def update_product(product_id):
     else:
         return jsonify({'error': 'Product not found'}), 404
 
-def delete_product(product_id):
+def delete_product(product_id: int) -> dict[str, str]:
     if 'role' not in session or session['role'] != 'admin':
         return jsonify({'error': 'Unauthorized: Admins only'}), 403
 

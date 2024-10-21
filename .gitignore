@@ -166,3 +166,4 @@ cython_debug/
 ai/
 .sesskey
 *.db*
+.env

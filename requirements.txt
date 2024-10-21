@@ -3,3 +3,5 @@ Werkzeug==2.3.6
 flask-basicauth
 fastlite
 fastcore
+python-dotenv
+
