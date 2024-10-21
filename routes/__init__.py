@@ -1,1 +1,1 @@
-from . import auth, products, cart, orders
+from . import auth, products, cart

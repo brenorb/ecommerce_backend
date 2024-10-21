@@ -1,7 +1,11 @@
+import os
 from dataclasses import dataclass
 from fastlite import database
 from enum import Enum
 from werkzeug.security import generate_password_hash
+from dotenv import load_dotenv
+
+load_dotenv()
 
 db = database('data/ecommerce.db')
 
@@ -32,7 +36,7 @@ class Cart:
 class Order:
     id: int
     user_id: int
-    cart_id: int
+    items: list
     order_date: str
     status: str
 
@@ -44,18 +48,18 @@ db.create(cls=Order, name='orders', pk='id', if_not_exists=True)
 
 import json
 
-def load_sample_products():
+def load_sample_products() -> None:
     with open('data/sample_products.json') as f:
         products = json.load(f)
         for product in products:
             db.t.products.insert(Product(**product))
 
-def create_admin_user():
+def create_admin_user() -> None:
     admin_user = User(
         id=None,  
-        username='admin',
-        password=generate_password_hash('admin_password'),  
-        email='admin@example.com',
+        username=os.getenv('ADMIN_USERNAME', 'admin'),
+        password=generate_password_hash(os.getenv('ADMIN_PASSWORD', 'admin_password')),  
+        email=os.getenv('ADMIN_EMAIL', 'admin@example.com'),
         role='admin'
     )
     db.t.users.insert(admin_user)

@@ -1,14 +1,17 @@
 import json
 from flask import Flask, request, jsonify
-# from flask_basicauth import BasicAuth
+from dotenv import load_dotenv
+import os
 from fastlite import database
 from dataclasses import dataclass
-from routes import auth, products, cart, orders
+from routes import auth, products, cart
 from models import db, load_sample_products
-import os
+
+# Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY') or 'your-secret-key-here'
+app.secret_key = os.getenv('SECRET_KEY') or 'your-secret-key-here'
 
 # Check if the products table is empty and load sample products if it is
 result = db.q(f'SELECT COUNT(*) AS enum FROM products')
@@ -23,9 +26,9 @@ def home():
 # Auth routes
 app.route('/v1/register', methods=['POST'])(auth.register)
 app.route('/v1/login', methods=['POST'])(auth.login)
-app.route('/v1/user/<username>', methods=['DELETE'])(auth.delete_user)
 app.route('/v1/logout', methods=['POST'])(auth.logout)
-app.route('/v1/user/<username>', methods=['GET'])(auth.get_user)  
+app.route('/v1/user/<str:username>', methods=['DELETE'])(auth.delete_user)
+app.route('/v1/user/<str:username>', methods=['GET'])(auth.get_user)  
 
 # Product routes
 app.route('/v1/products', methods=['GET'])(products.get_products)
@@ -38,17 +41,8 @@ app.route('/v1/products/<int:product_id>', methods=['DELETE'])(products.delete_p
 app.route('/v1/cart', methods=['POST'])(cart.add_to_cart)
 app.route('/v1/cart/<int:user_id>', methods=['GET'])(cart.get_cart)
 app.route('/v1/cart/<int:user_id>', methods=['DELETE'])(cart.delete_cart)
+app.route('/v1/order/<int:user_id>', methods=['POST'])(cart.place_order)
 
-@app.route('/v1/cart/<int:user_id>', methods=['GET'])
-def get_user_cart(user_id):
-    return cart.get_cart(user_id)
-
-@app.route('/v1/cart/delete/<int:user_id>', methods=['DELETE'])
-def delete_user_cart(user_id):
-    return cart.delete_cart(user_id)
-
-# Order routes
-app.route('/v1/order', methods=['POST'])(orders.place_order)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
