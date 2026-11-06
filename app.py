@@ -27,8 +27,8 @@ def home():
 app.route('/v1/register', methods=['POST'])(auth.register)
 app.route('/v1/login', methods=['POST'])(auth.login)
 app.route('/v1/logout', methods=['POST'])(auth.logout)
-app.route('/v1/user/<str:username>', methods=['DELETE'])(auth.delete_user)
-app.route('/v1/user/<str:username>', methods=['GET'])(auth.get_user)  
+app.route('/v1/user/<username>', methods=['DELETE'])(auth.delete_user)
+app.route('/v1/user/<username>', methods=['GET'])(auth.get_user)
 
 # Product routes
 app.route('/v1/products', methods=['GET'])(products.get_products)
