@@ -53,3 +53,9 @@ class TestOrderRules(unittest.TestCase):
         for quantity in (0, -3, "2"):
             self.assertEqual(self.add(item, quantity).status_code, 400)
         self.assertEqual(stock_of(item), 5)
+
+    def test_registering_cannot_grant_admin(self) -> None:
+        name = f"user-{uuid.uuid4().hex[:8]}"
+        response = self.client.post("/v1/register", json={"username": name, "password": "secret-pass", "email": f"{name}@example.com", "is_admin": True})
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(db.q("SELECT role FROM users WHERE username = ?", (name,))[0]["role"], "user")

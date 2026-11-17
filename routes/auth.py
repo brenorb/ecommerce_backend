@@ -12,8 +12,9 @@ def register() -> dict[str, str]:
         return jsonify({'error': 'Conflict: username or email already exists'}), 409
     
     hashed_password = generate_password_hash(data['password'])
-    role = 'admin' if data.get('is_admin') else 'user'
-    user = User(username=data['username'], password=hashed_password, email=data['email'], role=role)
+    # Public sign-up always creates a regular user; admins are created by
+    # create_admin_user from the server's configuration.
+    user = User(username=data['username'], password=hashed_password, email=data['email'], role='user')
     db.t.users.insert(user)
     return jsonify({'message': 'User registered successfully'}), 201
 
