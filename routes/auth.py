@@ -43,8 +43,8 @@ def delete_user(username: str) -> dict[str, str]:
         return jsonify({'message': 'User account deleted successfully'}), 200
 
     elif 'role' in session and session['role'] == 'admin':
-        result = db.execute('DELETE FROM users WHERE username = ?', (username,))
-        if result.rowcount > 0:
+        db.execute('DELETE FROM users WHERE username = ?', (username,))
+        if db.conn.changes() > 0:
             return jsonify({'message': 'User deleted successfully'}), 200
         else:
             return jsonify({'error': 'User not found'}), 404
@@ -55,9 +55,9 @@ def delete_own_account() -> dict[str, str]:
         return jsonify({'error': 'Unauthorized: User not logged in'}), 401
 
     username = session['username']
-    result = db.execute('DELETE FROM users WHERE username = ?', (username,))
+    db.execute('DELETE FROM users WHERE username = ?', (username,))
     
-    if result.rowcount > 0:
+    if db.conn.changes() > 0:
         session.pop('username', None)  # Clear session
         return jsonify({'message': 'User account deleted successfully'}), 200
     else:

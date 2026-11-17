@@ -54,9 +54,9 @@ def get_cart(user_id: int) -> dict[str, list | float]:
 
 def delete_cart(user_id: int) -> dict[str, str]:
     # Delete all cart items for the user
-    result = db.execute("DELETE FROM carts WHERE user_id = ?", (user_id,))
+    db.execute("DELETE FROM carts WHERE user_id = ?", (user_id,))
     
-    if result.rowcount > 0:
+    if db.conn.changes() > 0:
         return jsonify({'message': 'Cart deleted successfully'}), 200
     else:
         return jsonify({'message': 'Cart is already empty'}), 200

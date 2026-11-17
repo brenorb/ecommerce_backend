@@ -32,10 +32,10 @@ def update_product(product_id: int) -> dict[str, str]:
         return jsonify({'error': 'Unauthorized: Admins only'}), 403
 
     data = request.json
-    result = db.execute('UPDATE products SET name = ?, description = ?, price = ?, stock = ? WHERE id = ?',
+    db.execute('UPDATE products SET name = ?, description = ?, price = ?, stock = ? WHERE id = ?',
                         (data['name'], data['description'], data['price'], data['stock'], product_id))
     
-    if result.rowcount > 0:
+    if db.conn.changes() > 0:
         return jsonify({'message': 'Product updated successfully'}), 200
     else:
         return jsonify({'error': 'Product not found'}), 404
@@ -44,9 +44,9 @@ def delete_product(product_id: int) -> dict[str, str]:
     if 'role' not in session or session['role'] != 'admin':
         return jsonify({'error': 'Unauthorized: Admins only'}), 403
 
-    result = db.execute('DELETE FROM products WHERE id = ?', (product_id,))
+    db.execute('DELETE FROM products WHERE id = ?', (product_id,))
     
-    if result.rowcount > 0:
+    if db.conn.changes() > 0:
         return jsonify({'message': 'Product deleted successfully'}), 200
     else:
         return jsonify({'error': 'Product not found'}), 404
