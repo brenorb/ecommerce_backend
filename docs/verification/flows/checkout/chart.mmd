@@ -1,0 +1,24 @@
+---
+title: "Order from the shop"
+---
+stateDiagram-v2
+  state "Legend" as legend {
+    lg0: done
+    lg1: shopping
+  }
+  class lg0 teal
+  class lg1 blue
+  s0: Browsing products
+  s1: Items in the cart
+  s2: Order being placed
+  s3: Order placed, cart cleared
+  [*] --> s0
+  s0 --> s1: you add an item
+  s1 --> s0: you empty the cart
+  s1 --> s2: you place the order
+  s2 --> s1: an item is short, nothing is taken
+  s2 --> s3: every item is in stock
+  class s0 blue
+  class s1 blue
+  class s2 blue
+  class s3 teal
