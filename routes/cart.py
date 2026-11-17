@@ -90,4 +90,6 @@ def place_order(user_id: int) -> dict[str, str | int]:
     # Clear the cart after placing the order
     delete_cart(user_id)
 
-    return jsonify({'message': 'Order placed successfully', 'order_id': new_order.id}), 201
+    # fastlite's insert returns the stored row as a dict.
+    order_id = new_order['id'] if isinstance(new_order, dict) else new_order.id
+    return jsonify({'message': 'Order placed successfully', 'order_id': order_id}), 201
