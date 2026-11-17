@@ -11,6 +11,10 @@ class InsufficientStock(Exception):
 
 def add_to_cart() -> dict[str, str | dict[str, str | int]]:
     data = request.json
+    quantity = data.get('quantity')
+    # A zero or negative line would pass the stock check and add stock back.
+    if type(quantity) is not int or quantity <= 0:
+        return jsonify({'error': 'quantity must be a positive integer'}), 400
     existing_item = db.q('SELECT * FROM carts WHERE user_id = ? AND product_id = ?', 
                          (data['user_id'], data['product_id']))
     

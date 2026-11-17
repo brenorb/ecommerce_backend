@@ -47,3 +47,9 @@ class TestOrderRules(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(stock_of(plenty), 5)
         self.assertEqual(stock_of(short), 1)
+
+    def test_a_cart_line_needs_a_positive_quantity(self) -> None:
+        item = product(5)
+        for quantity in (0, -3, "2"):
+            self.assertEqual(self.add(item, quantity).status_code, 400)
+        self.assertEqual(stock_of(item), 5)
