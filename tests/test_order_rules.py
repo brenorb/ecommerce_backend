@@ -36,3 +36,14 @@ class TestOrderRules(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertIsInstance(response.get_json()["order_id"], int)
         self.assertEqual(stock_of(item), 3)
+
+    def test_a_refused_order_takes_no_stock(self) -> None:
+        # Checkout.tla StockConserved: the second item is short, so the
+        # order fails, and the first item's stock must be untouched.
+        plenty, short = product(5), product(1)
+        self.add(plenty, 2)
+        self.add(short, 3)
+        response = self.client.post(f"/v1/order/{self.user_id}")
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(stock_of(plenty), 5)
+        self.assertEqual(stock_of(short), 1)

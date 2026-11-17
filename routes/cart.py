@@ -3,6 +3,12 @@ from models import db, Cart, Product, Order
 from werkzeug.exceptions import BadRequest
 from datetime import datetime
 
+
+class InsufficientStock(Exception):
+    def __init__(self, product_id: int) -> None:
+        super().__init__(product_id)
+        self.product_id = product_id
+
 def add_to_cart() -> dict[str, str | dict[str, str | int]]:
     data = request.json
     existing_item = db.q('SELECT * FROM carts WHERE user_id = ? AND product_id = ?', 
@@ -71,17 +77,21 @@ def place_order(user_id: int) -> dict[str, str | int]:
     if not cart_items:
         return jsonify({'error': 'Cart is empty, cannot place order'}), 400
 
-    # Create an order for the user
+    # Take the stock for every item in one transaction: if any item is
+    # short, nothing is taken. The conditional UPDATE also refuses a product
+    # whose stock another order took after the cart was read.
     total_price = response[0].get_json()['total_price']
-    for item in cart_items:
-        # Check stock before updating
-        check_stock = db.q("SELECT stock FROM products WHERE id = ?", (item['product_id'],))
-        if not check_stock or check_stock[0]['stock'] < item['quantity']:
-            return jsonify({'error': 'Insufficient stock for product ID: {}'.format(item['product_id'])}), 400
-        
-        # Update stock
-        db.execute("UPDATE products SET stock = stock - ? WHERE id = ?", (item['quantity'], item['product_id']))
-        product_response = db.q("SELECT stock FROM products WHERE id = ?", (item['product_id'],))
+    try:
+        with db.conn:
+            for item in cart_items:
+                db.execute(
+                    "UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?",
+                    (item['quantity'], item['product_id'], item['quantity']),
+                )
+                if db.conn.changes() != 1:
+                    raise InsufficientStock(item['product_id'])
+    except InsufficientStock as error:
+        return jsonify({'error': 'Insufficient stock for product ID: {}'.format(error.product_id)}), 400
 
     order_date = datetime.now().isoformat()
     order = Order(user_id=user_id, items=cart_items, order_date=order_date, status='Pending')
